@@ -136,6 +136,11 @@ public class OeAppService implements XQServiceEx {
 		                XQPart p1 = msg.createPart();
 		                p1.setContent(Respuesta, "text/plain");
 		                msg.addPart(p1);
+		                
+		                //Una posibilidad en cuanto a tiempo, se tendría que probar
+		                //Revisar que es mas rápido, crear una nueva parte o reemplazarla
+		                //msg.replacePart(prt, Respuesta);
+		                
 		                //System.out.println("Salida " + Respuesta);
 		                //prt.setContent(env, retVal);
 					} catch (RunTime4GLException e) {
