@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<serviceType xmlns="http://www.sonicsw.com/sonicxq" name="oeAppService" factoryClass="com.alida.openedge.OeAppService" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sonicsw.com/sonicxq file%3A%2F%2F%2FC%3A%2FAurea%2FSonic2017%2FESB10.0%2Fschema%2FserviceType.xsd">
+	<validParams>
+		<init>
+		    <stringParam name="url" required="false">
+		        <default edittable="true" editAsRef="false">AppServerDC://localhost:3091</default>
+		    </stringParam>
+		    <stringParam name="brokerName" required="false">
+		        <default edittable="true" editAsRef="false">asbroker1</default>
+		    </stringParam>
+		    <stringParam name="programName" required="false">
+		        <default edittable="true" editAsRef="false">program.p</default>
+		    </stringParam>
+		</init>
+	</validParams>	
+	<classLoading>
+	    <serviceType>
+	        <classpath_list>
+	            <classpath>sonicfs:///workspace/oeAppService/lib/custom-services-classes.jar</classpath>
+	            <classpath>sonicfs:///workspace/oeAppService/lib/o4glrt.jar</classpath>
+	        </classpath_list>
+	    </serviceType>
+	</classLoading>
+</serviceType>

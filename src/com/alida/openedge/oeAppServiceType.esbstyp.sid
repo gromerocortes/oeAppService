@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sid xmlns="http://www.sonicsw.com/sonicesb/sid"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	  <service>
+		    <properties>
+			      <name>oeAppService</name>
+			      <type>Java</type>			
+			      <namespace>http://www.sonicsw.com/sonicesb/sid</namespace>
+		    </properties>
+
+		    <interface name="Default">
+			      <operation name="Default">
+				        <input name="Input">
+					          <part binding-info="name" binding-name="Part" name="DefaultInput"
+                     namespace="http://www.w3.org/2001/XMLSchema"
+                     type="xsd:anyType"/>
+				        </input>
+				        <output name="Output">
+					          <part binding-info="name" binding-name="Part" name="DefaultOutput"
+                     namespace="http://www.w3.org/2001/XMLSchema"
+                     type="xsd:anyType"/>
+				        </output>
+			      </operation>
+		    </interface>
+	  </service>
+   <scenarios xmlns="http://sonic.esb.org/scenario/"/>
+   <service-instances>
+      <service-instance xmlns="" default="true" name="oeAppServiceInstance">
+         <container>Evercore[EvercoreContainer]</container>
+         <wsdl-url></wsdl-url>
+         <endpoints>
+            <entry-endpoint name="oeAppServiceInstance.Entry" type="ENDPOINT"/>
+            <exit-endpoints>
+               <exit-endpoint name="oeAppServiceInstance.Exit" type="ENDPOINT"/>
+            </exit-endpoints>
+            <fault-endpoint name="oeAppServiceInstance.Fault" type="ENDPOINT"/>
+            <rejected-endpoint name="oeAppServiceInstance.RME" type="ENDPOINT"/>
+         </endpoints>
+         <parameters>
+            <parameter datatype="string" name="url" ref="false" type="init"
+                       value="AppServerDC://localhost:3091"/>
+            <parameter datatype="string" name="brokerName" ref="false" type="init" value="asbroker1"/>
+            <parameter datatype="string" name="programName" ref="false" type="init"
+                       value="AddCustomer.p"/>
+         </parameters>
+      </service-instance>
+   </service-instances>
+</sid>
