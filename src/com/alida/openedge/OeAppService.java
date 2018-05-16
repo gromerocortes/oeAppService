@@ -36,7 +36,7 @@ public class OeAppService implements XQServiceEx {
     private String retVal;
     private String CustName;
     
-    private String processError;
+    private String processError = "";
 
     /**
      * Constructor for a OeAppService
@@ -73,30 +73,10 @@ public class OeAppService implements XQServiceEx {
         
         m_xqLog.logInformation(m_logPrefix +" Initialized ...");
         
-        try {
-            Connection myConn = new Connection("","","");
-			dynAO = new OpenAppObject(myConn, SettingBroker);
-			
-            CustName = null;
-            // Create the ParamArray
-            parms = new ParamArray(2);
-            //////////////////////////////////////
-            //Instant start = Instant.now();
-			
-		} catch (ConnectException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (SystemErrorException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (Open4GLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        
+        conexion (SettingUrl, SettingBroker);
+        CustName = null;
+        parms = new ParamArray(2);
+
     }
 
 
@@ -114,55 +94,43 @@ public class OeAppService implements XQServiceEx {
 		// Get the message.
 		XQEnvelope env = ctx.getNextIncoming();
 		if (env != null) {
-			processError = "";
 			XQMessage msg = env.getMessage();
 			try {
 				int iPartCnt = msg.getPartCount();
 				for (int i = 0; i < iPartCnt; i++) {
 					prt = msg.getPart(i);
 					Object content = prt.getContent();
-                    //m_xqLog.logInformation("Content at Part [" + i + "]:\n" + content);
                     CustName = (String) content;
-                    //// OpenEdge
-                    try {
-                        // Set up input parameters
-                        parms.addCharacter(0, CustName, ParamArrayMode.INPUT);
-                        // Set up Out parameters - notice the value is null
-                        parms.addCharacter(1, null, ParamArrayMode.OUTPUT);
-                    	/////
-                        //Object valor = dynAO._getConnectionId();
-                        //m_xqLog.logInformation(m_logPrefix +" ID ... " + valor.toString());
-
-						dynAO.runProc(SettingProgram, parms);
-						Respuesta = (String) parms.getOutputParameter(1);
-		                // Get RETURN-VALUE - Will return null for AddCustomer() procedure
-		                retVal = (String)(parms.getProcReturnString());
-		                
-		                //XQPart p1 = msg.createPart();
-		                //p1.setContent(Respuesta, "text/plain");
-		                //msg.addPart(p1);
-		                
-		                //Una posibilidad en cuanto a tiempo, se tendría que probar
-		                //Revisar que es mas rápido, crear una nueva parte o reemplazarla
-		                //prt.setContent(Respuesta, "text/plain");
-		                //msg.replacePart(prt, 0);
-		                
-		                //System.out.println("Salida " + Respuesta);
-		                //prt.setContent(env, retVal);
-					} catch (RunTime4GLException e) {
-						// TODO Auto-generated catch block
-						processError = "1";
-						e.printStackTrace();
-					} catch (SystemErrorException e) {
-						// TODO Auto-generated catch block
-						processError = "2";
-						e.printStackTrace();
-					} catch (Open4GLException e) {
-						// TODO Auto-generated catch block
-						processError = "3";
-						// Aqui creo que va el código que hay que cachar en caso de que se desconecte.
-						e.printStackTrace();
-					}
+                    while (true){
+	                    try {
+	                        // Set up input parameters
+	                        parms.addCharacter(0, CustName, ParamArrayMode.INPUT);
+	                        // Set up Out parameters - notice the value is null
+	                        parms.addCharacter(1, null, ParamArrayMode.OUTPUT);
+	                    	/////
+							dynAO.runProc(SettingProgram, parms);
+							Respuesta = (String) parms.getOutputParameter(1);
+			                // Get RETURN-VALUE - Will return null for AddCustomer() procedure
+			                //retVal = (String)(parms.getProcReturnString());
+							processError = "";
+							break;
+						} catch (RunTime4GLException e) {
+							// TODO Auto-generated catch block
+							processError = "1";
+							e.printStackTrace();
+						} catch (SystemErrorException e) {
+							// TODO Auto-generated catch block
+							processError = "2";
+							e.printStackTrace();
+						} catch (Open4GLException e) {
+							// TODO Auto-generated catch block
+							processError = "3";
+					        conexion (SettingUrl, SettingBroker);
+							m_xqLog.logError("Error " + e.getMessage());
+							//e.printStackTrace();
+						}
+                    }
+                    
 				}
 			} catch (XQMessageException me) {
 				throw new XQServiceException("Exception accessing XQMessage: "
@@ -183,6 +151,7 @@ public class OeAppService implements XQServiceEx {
 					}
 					ctx.addOutgoing(env);
 				} else {
+					//m_xqLog.logInformation("Enviando mensaje de Error generado en " + processError);
 					ctx.addFault(msg);
 				}
 			}
@@ -289,5 +258,37 @@ public class OeAppService implements XQServiceEx {
             	m_xqLog.logInformation(m_logPrefix +"Parameter Value = " + info.getValue());            	
             }
         }
+    }
+    
+    public OpenAppObject conexion (String urlString, String brokerSetting){
+		try {
+	        Connection myConn = new Connection(urlString,"","","");
+			dynAO = new OpenAppObject(myConn, brokerSetting);
+		} catch (ConnectException e) {
+			// TODO Auto-generated catch block
+	        m_xqLog.logError("Error de conexión " + e.getMessage());
+			//e.printStackTrace();
+		} catch (SystemErrorException e) {
+			// TODO Auto-generated catch block
+	        m_xqLog.logError("Error de sistema " + e.getMessage());
+			//e.printStackTrace();
+		} catch (Open4GLException e) {
+			// TODO Auto-generated catch block
+	        m_xqLog.logError("Error de 4GL " + e.getMessage());
+			//e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+	        m_xqLog.logError("Error de conexión " + e.getMessage());
+	        m_xqLog.logInformation( m_logPrefix + "Reconectando ...... ");
+	        conexion (SettingUrl, SettingBroker);
+	        try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			//e.printStackTrace();
+		}
+		return dynAO;
     }
 }
