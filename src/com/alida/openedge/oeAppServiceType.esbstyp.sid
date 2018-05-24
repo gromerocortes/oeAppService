@@ -38,7 +38,7 @@
          </endpoints>
          <parameters>
             <parameter datatype="string" name="url" ref="false" type="init"
-                       value="AppServerDC://localhost:3091"/>
+                       value="AppServerDC://localhost:3090"/>
             <parameter datatype="string" name="brokerName" ref="false" type="init" value="asbroker1"/>
             <parameter datatype="string" name="programName" ref="false" type="init"
                        value="AddCustomer.p"/>

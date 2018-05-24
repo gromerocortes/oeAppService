@@ -1,6 +1,7 @@
 package com.alida.openedge;
 
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -8,6 +9,7 @@ import com.progress.open4gl.javaproxy.*;
 import com.progress.open4gl.ConnectException;
 import com.progress.open4gl.Open4GLException;
 import com.progress.open4gl.RunTime4GLException;
+import com.progress.open4gl.RunTimeProperties;
 import com.progress.open4gl.SystemErrorException;
 import com.sonicsw.xq.*;
 
@@ -34,7 +36,7 @@ public class OeAppService implements XQServiceEx {
 	private String Respuesta;
     // Create a place for RETURN-VALUE
     private String retVal;
-    private String CustName;
+    private String CustName; 
     
     private String processError = "";
 
@@ -75,7 +77,7 @@ public class OeAppService implements XQServiceEx {
         
         conexion (SettingUrl, SettingBroker);
         CustName = null;
-        parms = new ParamArray(2);
+        parms = new ParamArray(1);
 
     }
 
@@ -91,6 +93,11 @@ public class OeAppService implements XQServiceEx {
     public void service(XQServiceContext ctx) throws XQServiceException {
 		m_xqLog.logDebug(m_logPrefix + "Service processing...");
 		XQPart prt = null;
+		long timeReceived;
+
+		timeReceived = Calendar.getInstance().getTimeInMillis();
+        m_xqLog.logInformation(m_logPrefix + " Enviando ..." + CustName + " Time: " + timeReceived);
+		
 		// Get the message.
 		XQEnvelope env = ctx.getNextIncoming();
 		if (env != null) {
@@ -106,10 +113,10 @@ public class OeAppService implements XQServiceEx {
 	                        // Set up input parameters
 	                        parms.addCharacter(0, CustName, ParamArrayMode.INPUT);
 	                        // Set up Out parameters - notice the value is null
-	                        parms.addCharacter(1, null, ParamArrayMode.OUTPUT);
-	                    	/////
+	                        //parms.addCharacter(1, null, ParamArrayMode.OUTPUT);
+	                    	// 
 							dynAO.runProc(SettingProgram, parms);
-							Respuesta = (String) parms.getOutputParameter(1);
+							//Respuesta = (String) parms.getOutputParameter(1);
 			                // Get RETURN-VALUE - Will return null for AddCustomer() procedure
 			                //retVal = (String)(parms.getProcReturnString());
 							processError = "";
@@ -130,7 +137,6 @@ public class OeAppService implements XQServiceEx {
 							//e.printStackTrace();
 						}
                     }
-                    
 				}
 			} catch (XQMessageException me) {
 				throw new XQServiceException("Exception accessing XQMessage: "
@@ -141,19 +147,19 @@ public class OeAppService implements XQServiceEx {
 			Iterator<XQAddress> addressList = env.getAddresses();
 			if (addressList.hasNext()) {
 				// Add the message to the Outbox
-				if (processError == ""){
+				//if (processError == ""){
 	                prt.setContent(Respuesta, "text/plain");
 	                try {
 						msg.replacePart(prt, 0);
 					} catch (XQMessageException e) {
-						// TODO Auto-generated catch block
+				//		// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 					ctx.addOutgoing(env);
-				} else {
-					//m_xqLog.logInformation("Enviando mensaje de Error generado en " + processError);
-					ctx.addFault(msg);
-				}
+				//} else {
+				//	//m_xqLog.logInformation("Enviando mensaje de Error generado en " + processError);
+				//	ctx.addFault(msg);
+				//}
 			}
 		}
 		m_xqLog.logDebug(m_logPrefix + "Service processed...");
@@ -263,6 +269,7 @@ public class OeAppService implements XQServiceEx {
     public OpenAppObject conexion (String urlString, String brokerSetting){
 		try {
 	        Connection myConn = new Connection(urlString,"","","");
+	        RunTimeProperties.setSessionModel(1);
 			dynAO = new OpenAppObject(myConn, brokerSetting);
 		} catch (ConnectException e) {
 			// TODO Auto-generated catch block
