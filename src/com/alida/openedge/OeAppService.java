@@ -14,30 +14,19 @@ import com.progress.open4gl.SystemErrorException;
 import com.sonicsw.xq.*;
 
 public class OeAppService implements XQServiceEx {
-
-	
-	// This is the XQLog (the container's logging mechanism).
     private XQLog m_xqLog = null;
-
-    //This is the the log prefix that helps identify this service during logging
     private String m_logPrefix = "";
-    
-    //These hold version information.
     private static int s_major = 1;
     private static int s_minor = 0;
     private static int s_buildNumber = 0;
-
-	private String	SettingUrl;
-	private String	SettingBroker;
-	private String	SettingProgram;
-	
+	private String	settingUrl;
+	private String	settingBroker;
+	private String	settingProgram;
 	private OpenAppObject dynAO;
 	private ParamArray parms;
-	private String Respuesta;
-    // Create a place for RETURN-VALUE
+	private String response;
     private String retVal;
-    private String CustName; 
-    
+    private String fixMsg; 
     private String processError = "";
 
     /**
@@ -67,16 +56,16 @@ public class OeAppService implements XQServiceEx {
         writeStartupMessage(params);
         //Perform initialization work.
 	        
-        SettingUrl = params.getParameter("url", 1);
-        SettingBroker = params.getParameter("brokerName", 1); 
-        SettingProgram = params.getParameter("programName", 1); 
+        settingUrl = params.getParameter("url", 1);
+        settingBroker = params.getParameter("brokerName", 1); 
+        settingProgram = params.getParameter("programName", 1); 
 
         writeParameters(params);
         
         m_xqLog.logInformation(m_logPrefix +" Initialized ...");
         
-        conexion (SettingUrl, SettingBroker);
-        CustName = null;
+        conexion (settingUrl, settingBroker);
+        fixMsg = null;
         parms = new ParamArray(1);
 
     }
@@ -96,7 +85,7 @@ public class OeAppService implements XQServiceEx {
 		long timeReceived;
 
 		timeReceived = Calendar.getInstance().getTimeInMillis();
-        m_xqLog.logInformation(m_logPrefix + " Enviando ..." + CustName + " Time: " + timeReceived);
+        m_xqLog.logInformation(m_logPrefix + " Enviando ..." + fixMsg + " Time: " + timeReceived);
 		
 		// Get the message.
 		XQEnvelope env = ctx.getNextIncoming();
@@ -107,16 +96,16 @@ public class OeAppService implements XQServiceEx {
 				for (int i = 0; i < iPartCnt; i++) {
 					prt = msg.getPart(i);
 					Object content = prt.getContent();
-                    CustName = (String) content;
+                    fixMsg = (String) content;
                     while (true){
 	                    try {
 	                        // Set up input parameters
-	                        parms.addCharacter(0, CustName, ParamArrayMode.INPUT);
+	                        parms.addCharacter(0, fixMsg, ParamArrayMode.INPUT);
 	                        // Set up Out parameters - notice the value is null
 	                        //parms.addCharacter(1, null, ParamArrayMode.OUTPUT);
 	                    	// 
-							dynAO.runProc(SettingProgram, parms);
-							//Respuesta = (String) parms.getOutputParameter(1);
+							dynAO.runProc(settingProgram, parms);
+							//response = (String) parms.getOutputParameter(1);
 			                // Get RETURN-VALUE - Will return null for AddCustomer() procedure
 			                //retVal = (String)(parms.getProcReturnString());
 							processError = "";
@@ -132,7 +121,7 @@ public class OeAppService implements XQServiceEx {
 						} catch (Open4GLException e) {
 							// TODO Auto-generated catch block
 							processError = "3";
-					        conexion (SettingUrl, SettingBroker);
+					        conexion (settingUrl, settingBroker);
 							m_xqLog.logError("Error " + e.getMessage());
 							//e.printStackTrace();
 						}
@@ -148,7 +137,7 @@ public class OeAppService implements XQServiceEx {
 			if (addressList.hasNext()) {
 				// Add the message to the Outbox
 				//if (processError == ""){
-	                prt.setContent(Respuesta, "text/plain");
+	                prt.setContent(response, "text/plain");
 	                try {
 						msg.replacePart(prt, 0);
 					} catch (XQMessageException e) {
@@ -287,7 +276,7 @@ public class OeAppService implements XQServiceEx {
 			// TODO Auto-generated catch block
 	        m_xqLog.logError("Error de conexión " + e.getMessage());
 	        m_xqLog.logInformation( m_logPrefix + "Reconectando ...... ");
-	        conexion (SettingUrl, SettingBroker);
+	        conexion (settingUrl, settingBroker);
 	        try {
 				Thread.sleep(2000);
 			} catch (InterruptedException e1) {
