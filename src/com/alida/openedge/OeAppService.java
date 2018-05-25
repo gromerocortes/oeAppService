@@ -25,7 +25,6 @@ public class OeAppService implements XQServiceEx {
 	private OpenAppObject dynAO;
 	private ParamArray parms;
 	private String response;
-    private String retVal;
     private String fixMsg; 
     private String processError = "";
 
@@ -52,24 +51,16 @@ public class OeAppService implements XQServiceEx {
         m_xqLog = initialContext.getLog();
         setLogPrefix(params);
         m_xqLog.logInformation(m_logPrefix + " Initializing ...");
-
         writeStartupMessage(params);
-        //Perform initialization work.
-	        
         settingUrl = params.getParameter("url", 1);
         settingBroker = params.getParameter("brokerName", 1); 
         settingProgram = params.getParameter("programName", 1); 
-
         writeParameters(params);
-        
         m_xqLog.logInformation(m_logPrefix +" Initialized ...");
-        
         conexion (settingUrl, settingBroker);
         fixMsg = null;
         parms = new ParamArray(1);
-
     }
-
 
     /**
      * Handle the arrival of XQMessages in the INBOX.
@@ -83,10 +74,8 @@ public class OeAppService implements XQServiceEx {
 		m_xqLog.logDebug(m_logPrefix + "Service processing...");
 		XQPart prt = null;
 		long timeReceived;
-
 		timeReceived = Calendar.getInstance().getTimeInMillis();
         m_xqLog.logInformation(m_logPrefix + " Enviando ..." + fixMsg + " Time: " + timeReceived);
-		
 		// Get the message.
 		XQEnvelope env = ctx.getNextIncoming();
 		if (env != null) {
@@ -101,29 +90,19 @@ public class OeAppService implements XQServiceEx {
 	                    try {
 	                        // Set up input parameters
 	                        parms.addCharacter(0, fixMsg, ParamArrayMode.INPUT);
-	                        // Set up Out parameters - notice the value is null
-	                        //parms.addCharacter(1, null, ParamArrayMode.OUTPUT);
-	                    	// 
 							dynAO.runProc(settingProgram, parms);
-							//response = (String) parms.getOutputParameter(1);
-			                // Get RETURN-VALUE - Will return null for AddCustomer() procedure
-			                //retVal = (String)(parms.getProcReturnString());
 							processError = "";
 							break;
 						} catch (RunTime4GLException e) {
-							// TODO Auto-generated catch block
 							processError = "1";
 							e.printStackTrace();
 						} catch (SystemErrorException e) {
-							// TODO Auto-generated catch block
 							processError = "2";
 							e.printStackTrace();
 						} catch (Open4GLException e) {
-							// TODO Auto-generated catch block
 							processError = "3";
 					        conexion (settingUrl, settingBroker);
 							m_xqLog.logError("Error " + e.getMessage());
-							//e.printStackTrace();
 						}
                     }
 				}
@@ -131,24 +110,16 @@ public class OeAppService implements XQServiceEx {
 				throw new XQServiceException("Exception accessing XQMessage: "
 						+ me.getMessage(), me);
 			}
-
 			// Pass message onto the outbox.
 			Iterator<XQAddress> addressList = env.getAddresses();
 			if (addressList.hasNext()) {
-				// Add the message to the Outbox
-				//if (processError == ""){
-	                prt.setContent(response, "text/plain");
-	                try {
-						msg.replacePart(prt, 0);
-					} catch (XQMessageException e) {
-				//		// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					ctx.addOutgoing(env);
-				//} else {
-				//	//m_xqLog.logInformation("Enviando mensaje de Error generado en " + processError);
-				//	ctx.addFault(msg);
-				//}
+                prt.setContent(response, "text/plain");
+                try {
+					msg.replacePart(prt, 0);
+				} catch (XQMessageException e) {
+					e.printStackTrace();
+				}
+				ctx.addOutgoing(env);
 			}
 		}
 		m_xqLog.logDebug(m_logPrefix + "Service processed...");
@@ -164,10 +135,8 @@ public class OeAppService implements XQServiceEx {
 		try {
 			dynAO._release();
 		} catch (SystemErrorException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (Open4GLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		m_xqLog.logInformation(m_logPrefix + "Destroyed...");
@@ -241,7 +210,6 @@ public class OeAppService implements XQServiceEx {
 
             if (info.getRef() != null) {
             	m_xqLog.logInformation(m_logPrefix +"Parameter Reference = " + info.getRef());
-
             	//If this is too verbose
             	///then a simple change from logInformation to logDebug
             	//will ensure file content is not displayed
@@ -261,29 +229,20 @@ public class OeAppService implements XQServiceEx {
 	        RunTimeProperties.setSessionModel(1);
 			dynAO = new OpenAppObject(myConn, brokerSetting);
 		} catch (ConnectException e) {
-			// TODO Auto-generated catch block
 	        m_xqLog.logError("Error de conexión " + e.getMessage());
-			//e.printStackTrace();
 		} catch (SystemErrorException e) {
-			// TODO Auto-generated catch block
 	        m_xqLog.logError("Error de sistema " + e.getMessage());
-			//e.printStackTrace();
 		} catch (Open4GLException e) {
-			// TODO Auto-generated catch block
 	        m_xqLog.logError("Error de 4GL " + e.getMessage());
-			//e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 	        m_xqLog.logError("Error de conexión " + e.getMessage());
 	        m_xqLog.logInformation( m_logPrefix + "Reconectando ...... ");
 	        conexion (settingUrl, settingBroker);
 	        try {
 				Thread.sleep(2000);
 			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-			//e.printStackTrace();
 		}
 		return dynAO;
     }
